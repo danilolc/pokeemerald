@@ -374,7 +374,7 @@ static void Task_BattleStart(u8 taskId)
     }
 }
 
-static void CreateBattleStartTask(u8 transition, u16 song)
+void CreateBattleStartTask(u8 transition, u16 song)
 {
     u8 taskId = CreateTask(Task_BattleStart, 1);
 
@@ -478,11 +478,11 @@ static void DoBattlePyramidTrainerHillBattle(void)
 // Initiates battle where Wally catches Ralts
 void StartWallyTutorialBattle(void)
 {
-    CreateMaleMon(&gEnemyParty[0], SPECIES_RALTS, 5);
-    LockPlayerFieldControls();
-    gMain.savedCallback = CB2_ReturnToFieldContinueScriptPlayMapMusic;
-    gBattleTypeFlags = BATTLE_TYPE_WALLY_TUTORIAL;
-    CreateBattleStartTask(B_TRANSITION_SLICE, 0);
+    CreateMaleMon(&gEnemyParty[0], SPECIES_TREECKO, 5);
+    //LockPlayerFieldControls();
+    //gMain.savedCallback = CB2_ReturnToFieldContinueScriptPlayMapMusic;
+    //gBattleTypeFlags = BATTLE_TYPE_WALLY_TUTORIAL;
+    //CreateBattleStartTask(B_TRANSITION_SLICE, 0);
 }
 
 void BattleSetup_StartScriptedWildBattle(void)

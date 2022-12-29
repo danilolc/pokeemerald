@@ -96,6 +96,9 @@ static void AllocSpriteTileRange(u16 tag, u16 start, u16 count);
 static void DoLoadSpritePalette(const u16 *src, u16 paletteOffset);
 static void UpdateSpriteMatrixAnchorPos(struct Sprite *, s32, s32);
 
+// BONES
+static bool8 AddBonesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u8 *oamIndex);
+
 typedef void (*AnimFunc)(struct Sprite *);
 typedef void (*AnimCmdFunc)(struct Sprite *);
 typedef void (*AffineAnimCmdFunc)(u8 matrixNum, struct Sprite *);
@@ -317,6 +320,10 @@ void AnimateSprites(void)
         if (sprite->inUse)
         {
             sprite->callback(sprite);
+
+            // BONES
+            if (sprite->subspriteMode == SUBSPRITES_BONES)
+                sprite->bonesCallback(sprite);
 
             if (sprite->inUse)
                 AnimateSprite(sprite);
@@ -1661,6 +1668,43 @@ void SetSubspriteTables(struct Sprite *sprite, const struct SubspriteTable *subs
     sprite->subspriteMode = SUBSPRITES_ON;
 }
 
+#include "malloc.h"
+
+// BONES
+// Problems:
+// - Limited number of OAMs when animating attacks
+// - Limited number of affine matrices (32)
+// - OAMs bounding box (mainly in back sprite)
+void SetSpriteBones(struct Sprite *sprite, const struct SpriteBone* bonesList, u8 numBones)
+{
+    u8 i;
+    u16 size = sizeof(struct SpriteBone) * numBones;
+
+    sprite->numBones = numBones;
+    sprite->bonesList = Alloc(size);
+    memcpy(sprite->bonesList, bonesList, size);
+
+    for (i = 0; i < numBones; i++) 
+    {
+        if (sprite->bonesList[i].isAffine)
+        {
+            sprite->bonesList[i].matrixNum = AllocOamMatrix();
+            sprite->bonesList[i].xScale   = 0x0100;
+            sprite->bonesList[i].yScale   = 0x0100;
+            sprite->bonesList[i].rotation = 0x0000;
+        }
+    }
+
+    sprite->bonesCallback = SpriteCallbackDummy;
+
+    sprite->oam.affineMode = ST_OAM_AFFINE_DOUBLE;
+    
+    sprite->subspriteMode = SUBSPRITES_BONES;
+    sprite->subspriteTables = (void*)1;
+    // Because of this in AddSpriteToOamBuffer:
+    // if (!sprite->subspriteTables || sprite->subspriteMode == SUBSPRITES_OFF)
+}
+
 bool8 AddSpriteToOamBuffer(struct Sprite *sprite, u8 *oamIndex)
 {
     if (*oamIndex >= gOamLimit)
@@ -1672,9 +1716,13 @@ bool8 AddSpriteToOamBuffer(struct Sprite *sprite, u8 *oamIndex)
         (*oamIndex)++;
         return 0;
     }
-    else
+    else if (sprite->subspriteMode != SUBSPRITES_BONES)
     {
         return AddSubspritesToOamBuffer(sprite, &gMain.oamBuffer[*oamIndex], oamIndex);
+    }
+    else
+    {
+        return AddBonesToOamBuffer(sprite, &gMain.oamBuffer[*oamIndex], oamIndex);
     }
 }
 
@@ -1751,6 +1799,62 @@ bool8 AddSubspritesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u
             if (sprite->subspriteMode != SUBSPRITES_IGNORE_PRIORITY)
                 destOam[i].priority = subspriteTable->subsprites[i].priority;
         }
+    }
+
+    return 0;
+}
+
+bool8 AddBonesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u8 *oamIndex) {
+
+    u8 i;
+    struct OamData *oam;
+    u16 baseX;
+    u16 baseY;
+
+    if (*oamIndex >= gOamLimit)
+        return 1;
+
+    oam = &sprite->oam;
+
+    baseX = oam->x - sprite->centerToCornerVecX;
+    baseY = oam->y - sprite->centerToCornerVecY;
+
+    for (i = 0; i < sprite->numBones; i++, (*oamIndex)++)
+    {
+        struct ObjAffineSrcData srcData;
+        struct OamMatrix matrix;
+
+        const struct SpriteBone* bone = &sprite->bonesList[i];
+
+        if (*oamIndex >= gOamLimit)
+                return 1;
+
+        destOam[i] = *oam;
+
+        if (bone->isAffine)
+        {
+            srcData.xScale = ConvertScaleParam(bone->xScale);
+            srcData.yScale = ConvertScaleParam(bone->yScale);
+            srcData.rotation = bone->rotation * 0x100;
+            ObjAffineSet(&srcData, &matrix, 1, 2);
+            CopyOamMatrix(bone->matrixNum, &matrix);
+
+            destOam[i].matrixNum = bone->matrixNum;
+        }
+        
+        destOam[i].shape = bone->shape;
+        destOam[i].size = bone->size;
+        destOam[i].priority = bone->priority;
+
+        destOam[i].tileNum = oam->tileNum + bone->tileOffset;
+
+        destOam[i].paletteNum = oam->paletteNum + bone->paletteOffset;
+
+        // TODO Calculate x, y, matrix
+        //destOam[i].paletteNum = i;
+        destOam[i].x = (s16)baseX + (s16)bone->x;
+        destOam[i].y = (s16)baseY + (s16)bone->y;
+
     }
 
     return 0;

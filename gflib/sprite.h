@@ -5,6 +5,9 @@
 #define SPRITE_NONE 0xFF
 #define TAG_NONE 0xFFFF
 
+// BONES
+#define MAX_BONES 16
+
 // Given to SetSpriteMatrixAnchor to skip anchoring one of the coords.
 #define NO_ANCHOR 0x800
 
@@ -153,6 +156,7 @@ enum
     SUBSPRITES_OFF,
     SUBSPRITES_ON,
     SUBSPRITES_IGNORE_PRIORITY, // on but priority is ignored
+    SUBSPRITES_BONES,
 };
 
 struct Subsprite
@@ -169,6 +173,34 @@ struct SubspriteTable
 {
     u8 subspriteCount;
     const struct Subsprite *subsprites;
+};
+
+// BONES
+struct SpriteBone
+{
+    u16 matrixNum:5;
+    u16 isAffine:1;
+
+    u16 shape:2;
+    u16 size:2;
+    u16 priority:2;
+
+    u16 unused1:4;
+
+    u16 tileOffset:10;
+    u16 paletteOffset:4;
+
+    u16 unused2:2;
+    
+    s16 xScale;
+    s16 yScale;
+    u16 rotation;
+
+    s8 x;
+    s8 y;
+    s8 anchorX;
+    s8 anchorY;
+
 };
 
 struct Sprite;
@@ -238,6 +270,12 @@ struct Sprite
              u8 subspriteMode:2;
 
     /*0x43*/ u8 subpriority;
+
+    // BONES
+    /*0x??*/ u8 numBones;
+    /*0x??*/ struct SpriteBone *bonesList;
+    /*0x??*/ SpriteCallback bonesCallback;
+
 };
 
 struct OamMatrix
@@ -322,5 +360,7 @@ void CopyFromSprites(u8 *dest);
 u8 SpriteTileAllocBitmapOp(u16 bit, u8 op);
 void ClearSpriteCopyRequests(void);
 void ResetAffineAnimData(void);
+
+void SetSpriteBones(struct Sprite *sprite, const struct SpriteBone *bonesList, u8 numBones);
 
 #endif //GUARD_SPRITE_H

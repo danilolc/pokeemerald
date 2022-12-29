@@ -172,13 +172,21 @@ static void UpdateLinkAndCallCallbacks(void)
         CallCallbacks();
 }
 
+void PutZigzagoonInPlayerParty(void);
+void StartWallyTutorialBattle(void);
+
 static void InitMainCallbacks(void)
 {
     gMain.vblankCounter1 = 0;
     gTrainerHillVBlankCounter = NULL;
     gMain.vblankCounter2 = 0;
     gMain.callback1 = NULL;
-    SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
+    PlayBGM(472);
+
+    PutZigzagoonInPlayerParty();
+    StartWallyTutorialBattle();
+
+    SetMainCallback2(CB2_InitBattle);
     gSaveBlock2Ptr = &gSaveblock2.block;
     gPokemonStoragePtr = &gPokemonStorage.block;
 }
