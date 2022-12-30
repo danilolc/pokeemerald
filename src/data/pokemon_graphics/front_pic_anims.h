@@ -2920,10 +2920,10 @@ static const union AnimCmd sAnim_OldUnownB_1[] =
 static const union AnimCmd sAnim_Treecko_1[] =
 {
     ANIMCMD_FRAME(0, 6),
-    ANIMCMD_FRAME(1, 15),
-    ANIMCMD_FRAME(0, 6),
-    ANIMCMD_FRAME(1, 15),
-    ANIMCMD_FRAME(0, 3),
+    //ANIMCMD_FRAME(1, 15),
+    //ANIMCMD_FRAME(0, 6),
+    //ANIMCMD_FRAME(1, 15),
+    //ANIMCMD_FRAME(0, 3),
     ANIMCMD_END,
 };
 

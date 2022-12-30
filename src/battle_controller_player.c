@@ -2193,103 +2193,6 @@ static void PlayerHandleSwitchInAnim(void)
     gBattlerControllerFuncs[gActiveBattler] = SwitchIn_TryShinyAnimShowHealthbox;
 }
 
-static const struct SpriteBone testBones[] = 
-{
-    {
-        .x = -1,
-        .y = -30,
-        .shape = SPRITE_SHAPE(16x32),
-        .size = SPRITE_SIZE(16x32),
-        .tileOffset = 0,
-        .isAffine = 0,
-    },
-    {
-        .x = 0,
-        .y = -3,
-        .shape = SPRITE_SHAPE(32x16),
-        .size = SPRITE_SIZE(32x16),
-        .tileOffset = 16,
-        .isAffine = 1,
-    },
-    {
-        .x = -30,
-        .y = -3,
-        .shape = SPRITE_SHAPE(32x16),
-        .size = SPRITE_SIZE(32x16),
-        .tileOffset = 24,
-        .isAffine = 1,
-    },
-    {
-        .x = -5,
-        .y = 15,
-        .shape = SPRITE_SHAPE(8x16),
-        .size = SPRITE_SIZE(8x16),
-        .tileOffset = 32,
-        .isAffine = 0,
-    },
-    {
-        .x = 10,
-        .y = 15,
-        .shape = SPRITE_SHAPE(8x16),
-        .size = SPRITE_SIZE(8x16),
-        .tileOffset = 34,
-        .isAffine = 0,
-    },
-    {
-        .x = 20,
-        .y = 35,
-        .shape = SPRITE_SHAPE(16x8),
-        .size = SPRITE_SIZE(16x8),
-        .tileOffset = 36,
-        .isAffine = 0,
-    },
-    {
-        .x = -20,
-        .y = 35,
-        .shape = SPRITE_SHAPE(16x8),
-        .size = SPRITE_SIZE(16x8),
-        .tileOffset = 38,
-        .isAffine = 0,
-    },
-    {
-        .x = 0,
-        .y = 0,
-        .shape = SPRITE_SHAPE(16x16),
-        .size = SPRITE_SIZE(16x16),
-        .tileOffset = 40,
-        .isAffine = 0,
-    },
-    {
-        .x = 15,
-        .y = 15,
-        .shape = SPRITE_SHAPE(32x16),
-        .size = SPRITE_SIZE(32x16),
-        .tileOffset = 44,
-        .isAffine = 0,
-    },
-};
-
-static void TestCallback(struct Sprite *sprite)
-{
-    u8 *rot = (u8*)(&sprite->data[4]);
-
-    if ((*rot % 128) == 0) // blink
-        sprite->bonesList[0].tileOffset = 8;
-
-    if ((*rot % 128) == 8)
-        sprite->bonesList[0].tileOffset = 0;
-
-    sprite->bonesList[1].xScale = 0x00E0;
-    sprite->bonesList[1].yScale = 0x00E0;
-    sprite->bonesList[1].rotation = *rot;
-
-    sprite->bonesList[2].xScale = 0x0120;
-    sprite->bonesList[2].yScale = 0x0120;
-    sprite->bonesList[2].rotation = -(*rot);
-
-    (*rot)++;
-}
-
 static void StartSendOutAnim(u8 battlerId, bool8 dontClearSubstituteBit)
 {
     u16 species;
@@ -2307,8 +2210,8 @@ static void StartSendOutAnim(u8 battlerId, bool8 dontClearSubstituteBit)
       GetBattlerSpriteSubpriority(battlerId));
 
     // Test bones mode
-    SetSpriteBones(&gSprites[gBattlerSpriteIds[battlerId]], testBones, ARRAY_COUNT(testBones));
-    gSprites[gBattlerSpriteIds[battlerId]].bonesCallback = TestCallback;
+    //SetSpriteBones(&gSprites[gBattlerSpriteIds[battlerId]], testBones, ARRAY_COUNT(testBones));
+    //gSprites[gBattlerSpriteIds[battlerId]].bonesCallback = TestCallback;
     
     gSprites[gBattleControllerData[battlerId]].data[1] = gBattlerSpriteIds[battlerId];
     gSprites[gBattleControllerData[battlerId]].data[2] = battlerId;

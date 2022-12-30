@@ -374,7 +374,7 @@ static void Task_BattleStart(u8 taskId)
     }
 }
 
-void CreateBattleStartTask(u8 transition, u16 song)
+static void CreateBattleStartTask(u8 transition, u16 song)
 {
     u8 taskId = CreateTask(Task_BattleStart, 1);
 

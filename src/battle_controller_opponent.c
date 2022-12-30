@@ -1126,6 +1126,107 @@ static void OpponentHandleSetRawMonData(void)
     OpponentBufferExecCompleted();
 }
 
+
+
+static const struct SpriteBone testBones[] = 
+{
+    { // Head
+        .x = -1,
+        .y = -15,
+        .shape = SPRITE_SHAPE(16x32),
+        .size = SPRITE_SIZE(16x32),
+        .tileOffset = 0,
+        .isAffine = 0,
+    },
+    { // Right hand
+        .x = 10,
+        .y = -3,
+        .shape = SPRITE_SHAPE(32x16),
+        .size = SPRITE_SIZE(32x16),
+        .tileOffset = 16,
+        .isAffine = 1,
+    },
+    { // Left hand
+        .x = -10,
+        .y = -3,
+        .shape = SPRITE_SHAPE(32x16),
+        .size = SPRITE_SIZE(32x16),
+        .tileOffset = 24,
+        .isAffine = 1,
+    },
+    { // Left Leg
+        .x = -3,
+        .y = 10,
+        .shape = SPRITE_SHAPE(8x16),
+        .size = SPRITE_SIZE(8x16),
+        .tileOffset = 32,
+        .isAffine = 0,
+    },
+    { // Right Leg
+        .x = 5,
+        .y = 10,
+        .shape = SPRITE_SHAPE(8x16),
+        .size = SPRITE_SIZE(8x16),
+        .tileOffset = 34,
+        .isAffine = 0,
+    },
+    { // Right foot
+        .x = 7,
+        .y = 15,
+        .shape = SPRITE_SHAPE(16x8),
+        .size = SPRITE_SIZE(16x8),
+        .tileOffset = 36,
+        .isAffine = 0,
+    },
+    { // Left foot
+        .x = -6,
+        .y = 14,
+        .shape = SPRITE_SHAPE(16x8),
+        .size = SPRITE_SIZE(16x8),
+        .tileOffset = 38,
+        .isAffine = 0,
+    },
+    { // Body
+        .x = 0,
+        .y = 0,
+        .shape = SPRITE_SHAPE(16x16),
+        .size = SPRITE_SIZE(16x16),
+        .tileOffset = 40,
+        .isAffine = 0,
+    },
+    { // Tail
+        .x = 12,
+        .y = 10,
+        .shape = SPRITE_SHAPE(32x16),
+        .size = SPRITE_SIZE(32x16),
+        .tileOffset = 44,
+        .isAffine = 1,
+    },
+};
+
+static void TestCallback(struct Sprite *sprite)
+{
+    u8 *rot = (u8*)(&sprite->data[7]);
+
+    if ((*rot % 128) == 0) // blink
+        sprite->bonesList[0].tileOffset = 8;
+
+    if ((*rot % 128) == 8)
+        sprite->bonesList[0].tileOffset = 0;
+
+    sprite->bonesList[1].xScale = 0x00E0;
+    sprite->bonesList[1].yScale = 0x00E0;
+    sprite->bonesList[1].rotation = *rot;
+
+    sprite->bonesList[2].xScale = 0x0120;
+    sprite->bonesList[2].yScale = 0x0120;
+    sprite->bonesList[2].rotation = -(*rot);
+
+    (*rot)++;
+}
+
+
+
 static void OpponentHandleLoadMonSprite(void)
 {
     u16 species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES);
@@ -1137,6 +1238,9 @@ static void OpponentHandleLoadMonSprite(void)
                                                GetBattlerSpriteCoord(gActiveBattler, BATTLER_COORD_X_2),
                                                GetBattlerSpriteDefault_Y(gActiveBattler),
                                                GetBattlerSpriteSubpriority(gActiveBattler));
+
+    SetSpriteBones(&gSprites[gBattlerSpriteIds[gActiveBattler]], testBones, ARRAY_COUNT(testBones));
+    gSprites[gBattlerSpriteIds[gActiveBattler]].bonesCallback = TestCallback;
 
     gSprites[gBattlerSpriteIds[gActiveBattler]].x2 = -DISPLAY_WIDTH;
     gSprites[gBattlerSpriteIds[gActiveBattler]].data[0] = gActiveBattler;

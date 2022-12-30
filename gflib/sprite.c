@@ -1696,8 +1696,6 @@ void SetSpriteBones(struct Sprite *sprite, const struct SpriteBone* bonesList, u
     }
 
     sprite->bonesCallback = SpriteCallbackDummy;
-
-    sprite->oam.affineMode = ST_OAM_AFFINE_DOUBLE;
     
     sprite->subspriteMode = SUBSPRITES_BONES;
     sprite->subspriteTables = (void*)1;
@@ -1821,10 +1819,8 @@ bool8 AddBonesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u8 *oa
 
     for (i = 0; i < sprite->numBones; i++, (*oamIndex)++)
     {
-        struct ObjAffineSrcData srcData;
-        struct OamMatrix matrix;
-
         const struct SpriteBone* bone = &sprite->bonesList[i];
+        s8 x, y;
 
         if (*oamIndex >= gOamLimit)
                 return 1;
@@ -1833,6 +1829,9 @@ bool8 AddBonesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u8 *oa
 
         if (bone->isAffine)
         {
+            struct ObjAffineSrcData srcData;
+            struct OamMatrix matrix;
+
             srcData.xScale = ConvertScaleParam(bone->xScale);
             srcData.yScale = ConvertScaleParam(bone->yScale);
             srcData.rotation = bone->rotation * 0x100;
@@ -1847,13 +1846,20 @@ bool8 AddBonesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u8 *oa
         destOam[i].priority = bone->priority;
 
         destOam[i].tileNum = oam->tileNum + bone->tileOffset;
-
         destOam[i].paletteNum = oam->paletteNum + bone->paletteOffset;
 
+        x = sCenterToCornerVecTable[bone->shape][bone->size][0];
+        y = sCenterToCornerVecTable[bone->shape][bone->size][1];
+
+        if (destOam[i].affineMode & ST_OAM_AFFINE_DOUBLE_MASK)
+        {
+            x *= 2;
+            y *= 2;
+        }
+
         // TODO Calculate x, y, matrix
-        //destOam[i].paletteNum = i;
-        destOam[i].x = (s16)baseX + (s16)bone->x;
-        destOam[i].y = (s16)baseY + (s16)bone->y;
+        destOam[i].x = (s16)baseX + (s16)bone->x + (s16)x;
+        destOam[i].y = (s16)baseY + (s16)bone->y + (s16)y;
 
     }
 
